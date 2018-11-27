@@ -2,6 +2,12 @@
 
 > v1.0
 
+## 一.适用场景
+
++ h5游戏
++ 音乐网站
++ 无需请求后端数据的网站
+
 ## 一.操作步骤
 
 1 打开`google chrome canary`, 输入`chrome://extensions/`, 点击**加载已解压的扩展程序**, 选择`crawler > extensions > chrome-redirect-request`, 点击`背景页`
