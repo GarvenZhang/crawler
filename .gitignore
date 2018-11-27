@@ -1,0 +1,5 @@
+# node包
+node_modules/
+
+# IDE配置
+.vscode/
