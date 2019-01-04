@@ -14,7 +14,7 @@ const fs = require('fs')
 
 function hash (domain) {
   const hashMap = global.crawler.hashMap
-  
+
   if (!hashMap[domain]) {
     hashMap[domain] = Date.now().toString()
   }
@@ -26,7 +26,7 @@ function relatedUrlHandle (RemovedTslUrl) {
   const {
     initialRootDirPath
   } = global.crawler
-  
+
   const urlObj = url.parse(RemovedTslUrl)
   const _domain = `${urlObj.protocol}//${urlObj.hostname}`
 
@@ -52,11 +52,11 @@ function urlsHandle (arr) {
     absUrl: item,
     relatedUrl: relatedUrlHandle(item)
   }))
-  
+
   ret = ret.filter(item => /^https/.test(item.absUrl) && path.extname(item.relatedUrl) !== '')
 
   return {
-    resources: ret,
+    resources: ret
   }
 }
 

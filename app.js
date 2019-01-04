@@ -1,13 +1,13 @@
-const Koa = require ('koa');
-const koaBody = require ('koa-body');
-const router = require ('koa-router') ();
-const path = require ('path');
-const url = require ('url');
-const fs = require ('fs');
+const Koa = require('koa')
+const koaBody = require('koa-body')
+const router = require('koa-router')()
+const path = require('path')
+const url = require('url')
+const fs = require('fs')
 
-const crawler = require ('./middleware/crawler');
-const urlsHandle = require ('./middleware/urlsHandle');
-const startupHandle = require ('./middleware/startupHandle');
+const crawler = require('./middleware/crawler')
+const urlsHandle = require('./middleware/urlsHandle')
+const startupHandle = require('./middleware/startupHandle')
 const endupHandle = require('./middleware/endupHandle')
 
 // 全局变量
@@ -31,32 +31,31 @@ global.crawler = {
  * @returns {Object} - koaapp
  */
 function createServer ({target, dirPath, port = 3E3} = {}) {
-
-  const urlObj = url.parse (target);
+  const urlObj = url.parse(target)
   global.crawler.dirPath = dirPath
-  global.crawler.initialRootDirPath = urlObj.protocol + '//' + urlObj.hostname;
-  global.crawler.initialHtmlDirPath = urlObj.href.replace ('/index.html', '');
+  global.crawler.initialRootDirPath = urlObj.protocol + '//' + urlObj.hostname
+  global.crawler.initialHtmlDirPath = urlObj.href.replace('/index.html', '')
 
-  const app = new Koa ();
+  const app = new Koa()
 
   // 服务启动时处理
   startupHandle()
 
   // body解析
-  app.use (
-    koaBody ({
-      jsonLimit: '10mb',
+  app.use(
+    koaBody({
+      jsonLimit: '10mb'
     })
-  );
+  )
 
   // 路由
-  app.use (require ('./routes/index')).use (router.allowedMethods ());
+  app.use(require('./routes/index')).use(router.allowedMethods())
 
   // 监听
-  app.listen (port, err => {
-    err && console.error (`app.listen error: ${port}`);
-    console.log (`Listening at localhost:${port}`);
-  });
+  app.listen(port, err => {
+    err && console.error(`app.listen error: ${port}`)
+    console.log(`Listening at localhost:${port}`)
+  })
 
   return app
 }
@@ -70,4 +69,4 @@ process.on('SIGINT', () => {
   }, 2E3)
 })
 
-module.exports = createServer;
+module.exports = createServer

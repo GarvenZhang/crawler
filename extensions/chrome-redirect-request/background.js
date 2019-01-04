@@ -63,7 +63,6 @@ function debounce (fn, wait, immediate) {
 }
 
 const sendUrlsDbc = debounce(function () {
-  
   ajax({
     method: 'post',
     data: JSON.stringify({
@@ -78,7 +77,6 @@ const sendUrlsDbc = debounce(function () {
   }).catch(err => {
     console.error(`ajax error: ${err}`)
   })
-
 }, 5E3)
 
 function addUrl (requestDetails) {
@@ -91,5 +89,5 @@ function addUrl (requestDetails) {
 
 chrome.webRequest.onCompleted.addListener(
   addUrl,
-  { urls: ["<all_urls>"] }
+  { urls: ['<all_urls>'] }
 )
