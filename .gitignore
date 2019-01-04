@@ -1,8 +1,0 @@
-# node包
-node_modules/
-
-# IDE配置
-.vscode/
-
-# 动态配置的入口文件
-index.js
