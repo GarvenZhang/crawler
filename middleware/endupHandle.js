@@ -1,11 +1,11 @@
 const fs = require('fs')
 const path = require('path')
-const replaceHtmlLinkPath = require('./replaceHtmlLinkPath')
+const htmlHandle = require('./htmlHandle')
 
 module.exports = () => {
 
   // html路径处理
-  replaceHtmlLinkPath()
+  htmlHandle()
 
   // 写入
   fs.createWriteStream(path.resolve(global.crawler.dirPath, './index.html')).write(global.crawler.html)

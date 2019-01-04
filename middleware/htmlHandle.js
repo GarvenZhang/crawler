@@ -3,8 +3,20 @@ const path = require('path')
 const cheerio = require('cheerio')
 const url = require('url')
 
-// 统一还原成完整路径, 再进行替换
+function kdkHandle (html) {
+  const $ = cheerio.load(html)
 
+  // title
+  $('title').text('')
+  // description
+  $('meta[name=description]').attr('content', '')
+  // keywords
+  $('meta[name=keywords]').attr('content', '')
+  
+  return $.html()
+}
+
+// 统一还原成完整路径, 再进行替换
 function toAbsUrl (tag, html, domain, htmlDirPath) {
   let ret = html
 
@@ -22,7 +34,7 @@ function toAbsUrl (tag, html, domain, htmlDirPath) {
     ret = ret.replace(
       new RegExp(`<base href=("|')${baseHref}`),
       `<base href=$1.${pathname}`
-    ) 
+    )
   }
 
   Array.from($(tag)).forEach(item => {
@@ -45,7 +57,7 @@ function toAbsUrl (tag, html, domain, htmlDirPath) {
     // 相对协议
     if (/^\/\//.test(link)) {
       ret = ret.replace(new RegExp(pattern, 'g'), `=$1https:${link}`)
-      return;
+      return
     }
 
     // 已经是完整路径
@@ -56,12 +68,12 @@ function toAbsUrl (tag, html, domain, htmlDirPath) {
     // 如果是类似 /js/xxx.js
     if (/^\/\w/.test(link)) {
       ret = ret.replace(new RegExp(pattern, 'g'), `=$1https:${domain}${pre}`)
-      return;
+      return
     }
 
     if ($base) {
       ret = ret.replace(new RegExp(pattern, 'g'), `=$1${domain}/${pre}`)
-      return;
+      return
     }
 
     // 如果是类似 js/xxx.js 或者 ./js/xxx.js
@@ -89,13 +101,16 @@ function toRelativeUrl (html) {
 
 module.exports = () => {
   const {html, initialRootDirPath, initialHtmlDirPath} = global.crawler
-  let ret = html;
+  let ret = html
+
+  // 处理TDK
+  ret = kdkHandle(ret)
 
   // 全部还原成完整路径
   // 需还原的情况: //a 、 ./a 、 a
   // 即只要不是https开头的, 都需要还原, 但考虑不到的情况有: css中的路径, js中动态加载的路径
   // 用path.join()
-  ['img', 'script', 'link', 'iframe'].forEach(tag => {
+  ;['img', 'script', 'link', 'iframe'].forEach(tag => {
     ret = toAbsUrl(tag, ret, initialRootDirPath, initialHtmlDirPath)
   })
 
