@@ -16,10 +16,8 @@ const {
  * @param {*} resources - 资源外链数组
  * @return {Promise}
  */
-function createOuterResources(resources) {
-
+function createOuterResources (resources) {
   resources.forEach(item => {
-
     const filePath = path.join(global.crawler.dirPath, item.relatedUrl.replace(/\?\d+$/g, ''))
     // 没有才发请求
     if (fs.existsSync(filePath)) {
@@ -27,7 +25,6 @@ function createOuterResources(resources) {
     }
 
     gets(item.absUrl).then((params) => {
-
       const {
         res
       } = params
@@ -36,13 +33,10 @@ function createOuterResources(resources) {
 
       const ws = fs.createWriteStream(filePath)
       handleData(res, ws, item.absUrl)
-
     }).catch(err => {
       console.error(err)
     })
-
   })
-
 }
 
 /**
@@ -51,7 +45,7 @@ function createOuterResources(resources) {
  * @param {String} resources[].relatedUrl - 相对路径
  * @param {String} resources[].absUrl - 绝对路径
  */
-function crawler(resources) {
+function crawler (resources) {
   const {
     dirPath
   } = global.crawler
