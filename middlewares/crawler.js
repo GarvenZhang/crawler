@@ -9,7 +9,11 @@ const path = require('path')
 const fs = require('fs')
 const {
   gets, mkdir, handleData
-} = require('./utils')
+} = require('../lib/utils')
+const {
+  update,
+  getCategoryData
+} = require('../middlewares/statusHandle')
 
 /**
  * 创建所有外链资源
@@ -17,26 +21,58 @@ const {
  * @return {Promise}
  */
 function createOuterResources (resources) {
-  resources.forEach(item => {
-    const filePath = path.join(global.crawler.dirPath, item.relatedUrl.replace(/\?\d+$/g, ''))
+  const {
+    dirPath, urls
+  } = global.crawler
+
+  for (let l = resources.length; l--;) {
+    const item = resources[l]
+
+    const filePath = path.join(dirPath, item.relatedUrl.replace(/\?\d+$/g, ''))
     // 没有才发请求
     if (fs.existsSync(filePath)) {
       return
     }
 
-    gets(item.absUrl).then((params) => {
+    gets(item.absUrl)
+    .then((params) => {
       const {
         res
       } = params
 
-      console.info(`${++global.crawler.logCount} 资源创建成功: ${filePath}`)
+      // 更新状态
+      update(item.absUrl, 2)
 
+      const {
+        hasGotten,
+        real
+      } = getCategoryData()
+      // tips
+      // console.info(`%c${hasGotten.length}/${real.length} 资源已请求完成: ${item.absUrl}`, 'color: #fff;')
+
+      // io操作
       const ws = fs.createWriteStream(filePath)
-      handleData(res, ws, item.absUrl)
-    }).catch(err => {
+      return handleData(res, ws, item.absUrl)
+    })
+    .then((result) => {
+      const {
+        absUrl
+      } = result
+
+      // 更新状态
+      update(absUrl, 3)
+
+      const {
+        hasCreated,
+        real
+      } = getCategoryData()
+      // tips
+      console.log(`【%c${hasCreated.length}/${real.length}】 资源创建成功: ${filePath}`, 'color: red; font-weight: 800;')
+    })
+    .catch(err => {
       console.error(err)
     })
-  })
+  }
 }
 
 /**

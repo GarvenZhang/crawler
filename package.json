@@ -13,8 +13,7 @@
     "cheerio": "^1.0.0-rc.2",
     "koa": "^2.6.1",
     "koa-body": "^4.0.4",
-    "koa-router": "^7.4.0",
-    "phantom": "^6.0.3"
+    "koa-router": "^7.4.0"
   },
   "dependencies": {}
 }

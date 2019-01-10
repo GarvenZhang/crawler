@@ -1,6 +1,9 @@
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
+const {
+  getCategoryData
+} = require('../middlewares/statusHandle')
 
 // 拿回来的资源分两种: 主域下, 其它域下
 // 要先拿到主域, 然后在得到的relatedUrl中替换掉主域
@@ -13,7 +16,9 @@ const fs = require('fs')
 // 4 把域名过滤成hash表
 
 function hash (domain) {
-  const hashMap = global.crawler.hashMap
+  const {
+    hashMap
+  } = global.crawler
 
   if (!hashMap[domain]) {
     hashMap[domain] = Date.now().toString()
@@ -39,16 +44,15 @@ function relatedUrlHandle (RemovedTslUrl) {
 
 /**
  * 整理成特定格式
- * @param {Array} arr - url数组
  * @returns {{resources: [{absUrl: String, relatedUrl: String}], hashMap: {domain: String}}} 特定格式对象
  */
-function urlsHandle (arr) {
-  const {
-    dirPath
-  } = global.crawler
+function urlsHandle () {
   let ret = []
+  const {
+    needRequest
+  } = getCategoryData()
 
-  ret = arr.map(item => ({
+  ret = needRequest.map(item => ({
     absUrl: item,
     relatedUrl: relatedUrlHandle(item)
   }))

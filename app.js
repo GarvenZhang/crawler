@@ -5,16 +5,15 @@ const path = require('path')
 const url = require('url')
 const fs = require('fs')
 
-const crawler = require('./middleware/crawler')
-const urlsHandle = require('./middleware/urlsHandle')
-const startupHandle = require('./middleware/startupHandle')
-const endupHandle = require('./middleware/endupHandle')
+const crawler = require('./middlewares/crawler')
+const urlsHandle = require('./middlewares/urlsHandle')
+const beforeStart = require('./middlewares/beforeStart')
+const beforeEnd = require('./middlewares/beforeEnd')
 
 // 全局变量
 global.crawler = {
-  logCount: 0,  // 打点计数
   html: '', // html文本
-  urls: [],
+  urls: new Map(),
   hashMap: {},
   dirPath: '',  // 要存放的目录
   initialRootDirPath: '', // 资源原始根目录
@@ -30,16 +29,28 @@ global.crawler = {
  * @param {Number} params.port - 服务器端口
  * @returns {Object} - koaapp
  */
-function createServer ({target, dirPath, port = 3E3} = {}) {
+function createServer (
+  {
+    target,
+    dirPath,
+    port = 3E3,
+    domainBlackList = []
+  } = {}
+) {
   const urlObj = url.parse(target)
-  global.crawler.dirPath = dirPath
-  global.crawler.initialRootDirPath = urlObj.protocol + '//' + urlObj.hostname
-  global.crawler.initialHtmlDirPath = urlObj.href.replace('/index.html', '')
+
+  global.crawler = {
+    ...global.crawler,
+    dirPath,
+    initialRootDirPath: urlObj.protocol + '//' + urlObj.hostname,
+    initialHtmlDirPath: urlObj.href.replace('/index.html', ''),
+    domainBlackList
+  }
 
   const app = new Koa()
 
   // 服务启动时处理
-  startupHandle()
+  beforeStart()
 
   // body解析
   app.use(
@@ -63,7 +74,7 @@ function createServer ({target, dirPath, port = 3E3} = {}) {
 // 程序终止前处理
 process.on('SIGINT', () => {
   // TODO:
-  endupHandle()
+  beforeEnd()
   setTimeout(() => {
     process.exit()
   }, 2E3)

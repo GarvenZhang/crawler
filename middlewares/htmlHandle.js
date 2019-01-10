@@ -3,48 +3,49 @@ const path = require('path')
 const cheerio = require('cheerio')
 const url = require('url')
 
-function kdkHandle (html) {
-  const $ = cheerio.load(html)
+let $ = null
 
+// tdk处理
+function kdkHandle (html) {
   // title
   $('title').text('')
   // description
   $('meta[name=description]').attr('content', '')
   // keywords
   $('meta[name=keywords]').attr('content', '')
-  
-  return $.html()
 }
 
 // 统一还原成完整路径, 再进行替换
-function toAbsUrl (tag, html, domain, htmlDirPath) {
-  let ret = html
-
+function toAbsUrl (tag, domain, htmlDirPath) {
   // 若有base, 找到, 还原其它相对url, 删除base
-  const $ = cheerio.load(ret)
   const $base = $('base')[0]
   const baseHref = ($base && $base.attribs.href) || ''
-
   if (
     baseHref &&
     /^\/\//.test(baseHref) &&
     new RegExp(domain).test(`https:${baseHref}`)
   ) {
     const pathname = url.parse(`https:${baseHref}`).pathname
-    ret = ret.replace(
-      new RegExp(`<base href=("|')${baseHref}`),
-      `<base href=$1.${pathname}`
-    )
+    $base.attr(baseHref, pathname)
   }
 
   Array.from($(tag)).forEach(item => {
-    let link = item.attribs.src || item.attribs.href
+    // 类型
+    let link = ''
+    let attrName = ''
+    if (item.attribs.src) {
+      attrName = 'src'
+      link = item.attribs.src
+    } else if (item.attribs.href) {
+      attrName = 'href'
+      link = item.attribs.href
+    }
 
     const pattern = `=("|')${link}`
 
     // url去掉参数
     if (/.+?(\?.+)$/.test(link)) {
-      link = link.replace(RegExp.$1, '')
+      $(tag).attr(attrName, '')
     }
 
     // 内嵌
@@ -56,7 +57,7 @@ function toAbsUrl (tag, html, domain, htmlDirPath) {
 
     // 相对协议
     if (/^\/\//.test(link)) {
-      ret = ret.replace(new RegExp(pattern, 'g'), `=$1https:${link}`)
+      $(tag).attr(attrName, `https:${link}`)
       return
     }
 
@@ -67,23 +68,18 @@ function toAbsUrl (tag, html, domain, htmlDirPath) {
 
     // 如果是类似 /js/xxx.js
     if (/^\/\w/.test(link)) {
-      ret = ret.replace(new RegExp(pattern, 'g'), `=$1https:${domain}${pre}`)
+      $(tag).attr(attrName, `https:${domain}${pre}`)
       return
     }
 
     if ($base) {
-      ret = ret.replace(new RegExp(pattern, 'g'), `=$1${domain}/${pre}`)
+      $(tag).attr(attrName, `${domain}/${pre}`)
       return
     }
 
     // 如果是类似 js/xxx.js 或者 ./js/xxx.js
-    ret = ret.replace(
-      new RegExp(pattern, 'g'),
-      `=$1https:${htmlDirPath}/${pre}`
-    )
+    $(tag).attr(attrName, `https:${htmlDirPath}/${pre}`)
   })
-
-  return ret
 }
 
 function toRelativeUrl (html) {
@@ -101,18 +97,22 @@ function toRelativeUrl (html) {
 
 module.exports = () => {
   const {html, initialRootDirPath, initialHtmlDirPath} = global.crawler
-  let ret = html
+
+  // 初始化
+  $ = cheerio.load(html)
 
   // 处理TDK
-  ret = kdkHandle(ret)
+  kdkHandle()
 
   // 全部还原成完整路径
   // 需还原的情况: //a 、 ./a 、 a
   // 即只要不是https开头的, 都需要还原, 但考虑不到的情况有: css中的路径, js中动态加载的路径
   // 用path.join()
   ;['img', 'script', 'link', 'iframe'].forEach(tag => {
-    ret = toAbsUrl(tag, ret, initialRootDirPath, initialHtmlDirPath)
+    toAbsUrl(tag, initialRootDirPath, initialHtmlDirPath)
   })
+
+  let ret = $.html()
 
   // 根据hashMap替换成相对路径
   ret = toRelativeUrl(ret)
@@ -121,6 +121,9 @@ module.exports = () => {
 
   // 若有base, 删除base
   ret = ret.replace(/\<base href\=\".+?\"\>/, '')
+
+  // 重置
+  $ = null
 
   global.crawler.html = ret
 }
