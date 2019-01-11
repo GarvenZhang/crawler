@@ -57,7 +57,7 @@ function urlsHandle () {
     relatedUrl: relatedUrlHandle(item)
   }))
 
-  ret = ret.filter(item => /^https/.test(item.absUrl) && path.extname(item.relatedUrl) !== '')
+  // ret = ret.filter(item => /^https/.test(item.absUrl) && path.extname(item.relatedUrl) !== '')
 
   return {
     resources: ret

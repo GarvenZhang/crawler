@@ -43,7 +43,7 @@ const init = (data) => {
   } = global.crawler
 
   data.forEach((resource, i) => {
-    if (!urls.has(i)) {
+    if (!urls.has(resource)) {
       if (domainBlackList.some(item => resource.indexOf(item) > -1)) {
         urls.set(resource, 0)
       } else {

@@ -15,5 +15,7 @@
     "koa-body": "^4.0.4",
     "koa-router": "^7.4.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "progress": "^2.0.3"
+  }
 }

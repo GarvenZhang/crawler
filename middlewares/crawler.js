@@ -34,44 +34,43 @@ function createOuterResources (resources) {
       return
     }
 
-    gets(item.absUrl)
-    .then((params) => {
-      const {
-        res
-      } = params
+    (function (i) {
+      gets(item.absUrl)
+      .then((params) => {
+        const {
+          res
+        } = params
 
-      // 更新状态
-      update(item.absUrl, 2)
+        // 更新状态
+        update(item.absUrl, 2)
 
-      const {
-        hasGotten,
-        real
-      } = getCategoryData()
-      // tips
-      // console.info(`%c${hasGotten.length}/${real.length} 资源已请求完成: ${item.absUrl}`, 'color: #fff;')
+        // io操作
+        const ws = fs.createWriteStream(filePath)
+        return handleData(res, ws, item.absUrl)
+      })
+      .then((result) => {
+        const {
+          bar
+        } = result
 
-      // io操作
-      const ws = fs.createWriteStream(filePath)
-      return handleData(res, ws, item.absUrl)
-    })
-    .then((result) => {
-      const {
-        absUrl
-      } = result
+        // 更新状态
+        update(item.absUrl, 3)
 
-      // 更新状态
-      update(absUrl, 3)
-
-      const {
-        hasCreated,
-        real
-      } = getCategoryData()
-      // tips
-      console.log(`【%c${hasCreated.length}/${real.length}】 资源创建成功: ${filePath}`, 'color: red; font-weight: 800;')
-    })
-    .catch(err => {
-      console.error(err)
-    })
+        const {
+          hasCreated,
+          real
+        } = getCategoryData()
+        // tips
+        bar.interrupt(`【${hasCreated.length}/${real.length}】| 资源创建成功: ${filePath}\n`)
+        console.log(`  i: ${i}\n`)
+        if (hasCreated.length === real.length) {
+          bar.interrupt(`全部资源处理完毕~~`)
+        }
+      })
+      .catch(err => {
+        console.error(err)
+      })
+    })(l)
   }
 }
 
@@ -90,7 +89,7 @@ function crawler (resources) {
   resources.forEach(item => {
     mkdir(item.relatedUrl, dirPath)
   })
-
+  console.log(resources.length)
   // 生成文件
   createOuterResources(resources)
 }
