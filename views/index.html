@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>批量下载配置</title>
+  <script>
+    function ajax({ method = 'get', async = true, data = null, url, headers = {} }) {
+      return new Promise(function (resolve, reject) {
+        // === readyState: 0 === //
+        // === Client has been created. open() not called yet. === //
+        let xhr = new XMLHttpRequest()
+
+        // === readyState: 3 === //
+        // === Downloading; responseText holds partial data. === //
+        xhr.onreadystatechange = function () {
+          // === readyState: 4 === //
+          // === The operation is complete. === //
+          if (this.readyState === 4) {
+            if ((this.status >= 200 && this.status < 300) || this.status === 304) {
+              try {
+                resolve(JSON.parse(this.responseText))
+              } catch (e) {
+                resolve(this.responseText)
+              }
+            } else if (this.status >= 400) {
+              reject(JSON.parse(this.responseText))
+            }
+          }
+        }
+
+        // === readyState: 1 === //
+        // === open() has been called. === //
+        xhr.open(method, url, async)
+
+        for (let key in headers) {
+          xhr.setRequestHeader(key, headers[key])
+        }
+
+        // === readyState: 2 === //
+        // === send() has been called, and headers and status are available. === //
+
+        xhr.send(data)
+      })
+    }
+
+    function serialize(form) {
+      let $formEles = form.elements
+      const data = {}
+      let field = null
+      let i
+      let j
+      let len
+      let option
+      let optLen
+      let optValue
+
+      for (i = 0, len = $formEles.length; i < len; ++i) {
+
+        field = $formEles[i];
+
+        switch (field.type) {
+
+          case undefined:
+          case 'file':
+          case 'submit':
+          case 'reset':
+          case 'button':
+            break;
+
+          case 'radio':
+          case 'checkbox':
+            if (!field.checked) {
+              break;
+            }
+
+          case 'select-one':
+          case 'select-multiple':
+            if (field.name.length) {
+              for (j = 0, optLen = field.options.length; j < optLen; ++j) {
+                option = field.options[j];
+                if (option.selected) {
+                  if (option.hasAttribute) {
+                    optValue = option.hasAttribute('value') ? option.value : option.text;
+                  } else {
+                    optValue = option.attributes['value'].specified ? option.value : option.text;
+                  }
+                  data[encodeURIComponent(field.name)] = encodeURIComponent(optValue)
+                }
+              }
+            }
+            break;
+
+
+          default:
+            if (field.name.length) {
+              data[encodeURIComponent(field.name)] = encodeURIComponent(field.value)
+            }
+            break
+        }
+      }
+      return data
+    }
+  </script>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #ccc;
+    }
+
+    h2 {
+      display: inline-block;
+    }
+
+    .wrap {
+      padding: 20px;
+    }
+
+    .title {
+      text-align: center;
+      border-bottom: 1px solid #000;
+      margin-bottom: 10px;
+    }
+
+    .section {
+      padding: 5px 0;
+      border-bottom: 1px solid #000;
+    }
+
+    .add-wrap {
+      text-align: center;
+      font-weight: 800;
+      padding-top: 20px;
+    }
+
+    .btn--add::before {
+      content: '+';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      font: 18px/1 '';
+      color: red;
+      vertical-align: 1px;
+      border-radius: 50%;
+      border: 1px solid red;
+      margin-right: 5px;
+    }
+
+    .btn {
+      height: 26px;
+      vertical-align: middle;
+    }
+
+    .btn:hover {
+      color: blue;
+      cursor: pointer;    
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1 class="title">批量下载配置</h1>
+    <form id="myForm" class="my-form">
+      <div class="add-wrap">
+        <button type="button" class="btn btn--add">增加一项</button>
+        <button type="reset" class="btn btn--reset">重置</button>
+        <button type="button" class="btn btn--submit">提交</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    const $myForm = document.querySelector('#myForm')
+    const $addWrap = document.querySelector('.add-wrap')
+    const $btnAdd = document.querySelector('.btn--add')
+    const $btnSubmit = document.querySelector('.btn--submit')
+
+    let count = 1
+
+    // 找编号
+    const getNum = (node) => {
+
+      let value = node.value
+      const $h2 = node.parentNode.parentNode.querySelector('.num')
+
+      // 去斜杠
+      if (/\/$/.test(value)) {
+        value = value.substr(0, value.length - 1)
+      }
+
+      // 找编号
+      let ret = ''
+      if (/\/(\d+)$/.test(value)) {
+        ret = RegExp.$1
+      }
+
+      $h2.textContent = ret
+
+    }
+
+    // 增加
+    const add = () => {
+
+      const frag = document.createDocumentFragment()
+      const section = document.createElement('section')
+      section.className = `section section--${count}`
+      section.innerHTML = `
+        <div class='row'>
+          编号: <h2 class='num'></h2>
+        </div>
+        <div class="row">
+          <label for="dirPath-${count}">目录路径:</label>
+          <input type="text" name="dirPath-${count}" id="dirPath-${count}">
+        </div>
+        <div class="row">
+          <label for="targetUrl-${count}">目标网页url:</label>
+          <input type="text" name="targetUrl-${count}" id="targetUrl-${count}">
+        </div>
+      `
+      frag.appendChild(section)
+      $myForm.insertBefore(frag, $addWrap)
+
+      ++count
+
+    }
+
+    // 将对象转化为数组
+    const dataHandle = (obj) => {
+      
+      const ret = []
+
+      for (let key in obj) {
+        if (/^dirPath-(\d+?)$/.test(key)) {
+          ret.push({
+            dirPath: obj[key],
+            targetUrl: obj[`targetUrl-${RegExp.$1}`]
+          })
+          delete obj[`targetUrl-${RegExp.$1}`]
+        }
+      }
+
+      return ret
+
+    }
+
+    // 发送请求
+    const submitHandle = () => {
+
+      const data = serialize($myForm)
+      console.log(dataHandle(data))
+      // ajax({
+      //   url: '/config',
+      //   method: 'post',
+      //   data
+      // }).then(data => {
+
+      // }).catch(err => {
+
+      // })
+    }
+
+    // keyup事件委托
+    const keyupHandle = (e) => {
+      
+      const target = e.target
+
+      // 编号处理
+      if (/^dirPath-/.test(target.name)) {
+        getNum(target)
+      }
+
+      // sessionStorage 处理
+      // if (target.tagName.toLowerCase() === 'input') {
+        
+      // }
+
+    }
+
+    // 监听
+    $btnAdd.addEventListener('click', add, false)
+    $btnSubmit.addEventListener('click', submitHandle, false)
+    document.addEventListener('keyup', keyupHandle, false)
+
+    // https://img.ulikegame.com/game/800001/assets/general/models.json 4M
+    // ajax({
+    //   url: 'https://img.ulikegame.com/game/800001/assets/general/models.json',
+    //   method: 'get'
+    // })
+
+    // https://img.ulikegame.com/game/800001/assets/general/transparent.json 1M
+    // https://img.ulikegame.com/game/800001/assets/general/animations.json 2.8M
+
+  </script>
+  <script src="https://img.ulikegame.com/game/800001/assets/general/models.json"></script>
+</body>
+
+</html>
