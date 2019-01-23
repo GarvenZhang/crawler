@@ -15,61 +15,76 @@ const {
   getCategoryData
 } = require('../middlewares/statusHandle')
 
+const getSuccessHandle = (params, item, filePath) => {
+  const {
+    res
+  } = params
+
+  // 更新状态
+
+  // io操作
+  const ws = fs.createWriteStream(filePath)
+  return handleData(res, ws, item.absUrl)
+}
+
+const createSuccessHandle = (result, item, filePath) => {
+  const {
+    bar
+  } = result
+
+  // 更新状态
+  update(item.absUrl, 3)
+
+  const {
+    hasCreated,
+    real
+  } = getCategoryData()
+  // tips
+  bar.interrupt(`【${hasCreated.length}/${real.length}】| 资源创建成功: ${filePath}\n`)
+  if (hasCreated.length === real.length) {
+    bar.interrupt(`全部资源处理完毕~~`)
+  }
+}
+
+const errorHandle = (err) => {
+  console.error(err)
+}
+
 /**
  * 创建所有外链资源
  * @param {*} resources - 资源外链数组
  * @return {Promise}
  */
-function createOuterResources (resources) {
+async function createOuterResources (resources) {
   const {
     dirPath, urls
   } = global.crawler
 
+  const ret = []
+
   // 缓冲区, 10出5, 防IP等, 分段请求, 待验证
 
-  for (let l = resources.length; l--;) {
-    const item = resources[l]
-
+  // 用面向对象的思想去做: 面向四个队列
+  const fetchPromiseArr = resources.map(async (item) => {
     const filePath = path.join(dirPath, item.relatedUrl.replace(/\?\d+$/g, ''))
     // 没有才发请求
     if (fs.existsSync(filePath)) {
       return
     }
 
-    gets(item.absUrl)
-      .then((params) => {
-        const {
-          res
-        } = params
+    // 发送请求
+    const promise = await gets(item.absUrl)
+      .then((params) => getSuccessHandle(params, item, filePath))
+      // .then((result) => createSuccessHandle(result, item, filePath))
+      // .catch(err => errorHandle(err))
+    return promise
+  })
 
-        // 更新状态
-        update(item.absUrl, 2)
-
-        // io操作
-        const ws = fs.createWriteStream(filePath)
-        return handleData(res, ws, item.absUrl)
-      })
-      .then((result) => {
-        const {
-          bar
-        } = result
-
-        // 更新状态
-        update(item.absUrl, 3)
-
-        const {
-          hasCreated,
-          real
-        } = getCategoryData()
-        // tips
-        bar.interrupt(`【${hasCreated.length}/${real.length}】| 资源创建成功: ${filePath}\n`)
-        if (hasCreated.length === real.length) {
-          bar.interrupt(`全部资源处理完毕~~`)
-        }
-      })
-      .catch(err => {
-        console.error(err)
-      })
+  for (const item of fetchPromiseArr) {
+    ret.push(
+      await item
+    )
+    // 判断是否填充
   }
 }
 

@@ -13,6 +13,15 @@ const beforeEnd = require('./middlewares/beforeEnd')
 // 全局变量
 global.crawler = {
   html: '', // html文本
+  memory: [],
+  // 用栈, 与顺序无关
+  defaultStack: [],
+  needRequestArr: [],
+  hasGottenStack: [],
+  hasCreatedStack: [],
+  interval: 0,
+  len: 0,
+  limit: 0,
   urls: new Map(),
   hashMap: {},
   dirPath: '',  // 要存放的目录
@@ -27,6 +36,9 @@ global.crawler = {
  * @param {String} params.target - 主域
  * @param {String} params.dirPath - 项目目录
  * @param {Number} params.port - 服务器端口
+ * @param {Number} params.interval - 请求间隔时间
+ * @param {Number} params.len - 请求缓冲区长度
+ * @param {Number} params.limit - 低于此值时填充缓冲区
  * @returns {Object} - koaapp
  */
 function createServer (
@@ -34,7 +46,10 @@ function createServer (
     target,
     dirPath,
     port = 3E3,
-    domainBlackList = []
+    domainBlackList = [],
+    interval = 1E2,
+    len = 10,
+    limit = 5
   } = {}
 ) {
   const urlObj = url.parse(target)
@@ -44,7 +59,10 @@ function createServer (
     dirPath,
     initialRootDirPath: urlObj.protocol + '//' + urlObj.hostname,
     initialHtmlDirPath: urlObj.href.replace('/index.html', ''),
-    domainBlackList
+    domainBlackList,
+    interval,
+    len,
+    limit
   }
 
   const app = new Koa()
