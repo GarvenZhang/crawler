@@ -25,6 +25,8 @@ function createOuterResources (resources) {
     dirPath, urls
   } = global.crawler
 
+  // 缓冲区, 10出5, 防IP等, 分段请求, 待验证
+
   for (let l = resources.length; l--;) {
     const item = resources[l]
 
@@ -34,8 +36,7 @@ function createOuterResources (resources) {
       return
     }
 
-    (function (i) {
-      gets(item.absUrl)
+    gets(item.absUrl)
       .then((params) => {
         const {
           res
@@ -62,7 +63,6 @@ function createOuterResources (resources) {
         } = getCategoryData()
         // tips
         bar.interrupt(`【${hasCreated.length}/${real.length}】| 资源创建成功: ${filePath}\n`)
-        console.log(`  i: ${i}\n`)
         if (hasCreated.length === real.length) {
           bar.interrupt(`全部资源处理完毕~~`)
         }
@@ -70,7 +70,6 @@ function createOuterResources (resources) {
       .catch(err => {
         console.error(err)
       })
-    })(l)
   }
 }
 
@@ -89,7 +88,7 @@ function crawler (resources) {
   resources.forEach(item => {
     mkdir(item.relatedUrl, dirPath)
   })
-  console.log(resources.length)
+
   // 生成文件
   createOuterResources(resources)
 }

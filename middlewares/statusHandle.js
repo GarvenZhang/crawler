@@ -5,22 +5,24 @@ const getCategoryData = () => {
 
   const [real, needRequest, hasGotten, hasCreated] = [[], [], [], []]
   for (const [key, value] of urls.entries()) {
-    if (value !== 0) {
-      real.push(key)
+    if (value === 0) {
+      continue
+    }
 
-      switch (value) {
-        case 1:
-          needRequest.push(key)
-          break
+    real.push(key)
 
-        case 2:
-          hasGotten.push(key)
-          break
+    switch (value) {
+      case 1:
+        needRequest.push(key)
+        break
 
-        case 3:
-          hasCreated.push(key)
-          break
-      }
+      case 2:
+        hasGotten.push(key)
+        break
+
+      case 3:
+        hasCreated.push(key)
+        break
     }
   }
 
