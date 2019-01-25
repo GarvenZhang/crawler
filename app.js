@@ -9,16 +9,20 @@ const crawler = require('./middlewares/crawler')
 const urlsHandle = require('./middlewares/urlsHandle')
 const beforeStart = require('./middlewares/beforeStart')
 const beforeEnd = require('./middlewares/beforeEnd')
+const NotHandle = require('./middlewares/Stage/NotHandle')
+const HasCreated = require('./middlewares/Stage/HasCreated')
+const ReadyRequest = require('./middlewares/Stage/ReadyRequest')
+const HasGotten = require('./middlewares/Stage/HasGotten')
+const Memory = require('./middlewares/Stage/Memory')
 
 // 全局变量
 global.crawler = {
   html: '', // html文本
-  memory: [],
-  // 用栈, 与顺序无关
-  defaultStack: [],
-  needRequestArr: [],
-  hasGottenStack: [],
-  hasCreatedStack: [],
+  notHandle: new NotHandle(),
+  hasCreated: new HasCreated(),
+  readyRequest: new ReadyRequest(),
+  hasGotten: new HasGotten(),
+  memory: new Memory(),
   interval: 0,
   len: 0,
   limit: 0,
