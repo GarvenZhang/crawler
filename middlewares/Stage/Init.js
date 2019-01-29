@@ -1,13 +1,13 @@
 const Stage = require('./index')
 
-class NotHandle extends Stage {
+class Init extends Stage {
   constructor () {
     super()
   }
 
   send (target) {
     // 先判断是否有空闲缓冲区
-    const freeLen = target.getFreeLen
+    const freeLen = target.getFreeLen()
     if (freeLen === 0) {
       return
     }
@@ -17,4 +17,4 @@ class NotHandle extends Stage {
   }
 }
 
-module.exports = NotHandle
+module.exports = Init

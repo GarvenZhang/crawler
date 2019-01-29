@@ -3,18 +3,13 @@ const url = require('url')
 
 const Stage = require('./index')
 const {
-  gets
+  httpsHandle,
+  mkdir
 } = require('../../lib/utils')
+// 引用类型与基本类型定义的位置
 const {
-  notHandle,
-  hasGotton,
-  initialRootDirPath,
   hashMap
 } = global.crawler
-
-const errorHandle = (err) => {
-  console.error(err)
-}
 
 const hash = (domain) => {
   if (!hashMap[domain]) {
@@ -24,6 +19,9 @@ const hash = (domain) => {
 }
 
 const relatedUrlHandle = (RemovedTslUrl) => {
+  const {
+    initialRootDirPath
+  } = global.crawler
   const urlObj = url.parse(RemovedTslUrl)
   const _domain = `${urlObj.protocol}//${urlObj.hostname}`
 
@@ -34,13 +32,13 @@ const relatedUrlHandle = (RemovedTslUrl) => {
   }
 }
 
-class ReadyRequest extends Stage {
+class Pending extends Stage {
   constructor () {
     super()
   }
 
   getFreeLen () {
-    const freeLen = 10 - this.data.length
+    const freeLen = 10 - this.size
     if (freeLen > 5) {
       return freeLen
     } else {
@@ -69,17 +67,23 @@ class ReadyRequest extends Stage {
   }
 
   send (target, item) {
-    // 发送
-    target.receive(item)
+    const {
+      init
+    } = global.crawler
+    const [
+      {absUrl}
+    ] = [...item.entries()][0]
     // 删除
     for (let l = this.data.length; l--;) {
-      if (this.data[l] === item) {
+      if (this.data[l].absUrl === absUrl) {
         this.data.splice(l, 1)
         break
       }
     }
+    // 发送
+    target.receive(item)
     // 尝试填充缓冲区
-    const isSuccess = this.get(notHandle)
+    const isSuccess = this.get(init)
   }
 
   dataHandle (data) {
@@ -98,18 +102,43 @@ class ReadyRequest extends Stage {
     }))
   }
 
-  request (newData) {
-    newData.forEach(async item => {
+  async request (newData) {
+    const {
+      dirPath, success
+    } = global.crawler
+
+    const handle = async item => {
       const filePath = path.join(dirPath, item.relatedUrl.replace(/\?\d+$/g, ''))
+      // 创建文件夹
+      mkdir(item.relatedUrl, dirPath)
 
       // 发送请求
-      const promise = await gets(item.absUrl)
-        .then(({res}) => handleData(res, item.absUrl))
+      const res = await httpsHandle(item.absUrl, filePath)
 
       // 转移
-      this.send(hasGotton, {[item.absUrl]: promise})
-    })
+      const key = {
+        ...item,
+        filePath
+      }
+      const map = new Map()
+      map.set(key, res)
+      this.send(success, map)
+    }
+    // 必须要控制请求间隔时间, 因为对方服务器肯定会有限制的, 如50ms内处理一共能处理多少个, 超过则拦截。
+    // 每个服务器有个连接池, 因为每个连接就是一个新的线程或者进程, 因此连接池的最大数量是由内存决定的, 必须要限定最大数量, 以空出足够的内存给其它进程用
+    const sleep = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve()
+        }, 2E2)
+      })
+    }
+
+    for (const item of newData) {
+      await sleep()
+      handle(item)
+    }
   }
 }
 
-module.exports = ReadyRequest
+module.exports = Pending

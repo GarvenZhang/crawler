@@ -1,37 +1,40 @@
+require('@babel/register')({
+  presets: ['@babel/preset-env'],
+  plugins: [
+    '@babel/plugin-transform-runtime',
+    '@babel/plugin-proposal-class-properties',
+    'transform-function-bind'
+  ]
+})
 const Koa = require('koa')
 const koaBody = require('koa-body')
 const router = require('koa-router')()
-const path = require('path')
 const url = require('url')
-const fs = require('fs')
-
-const crawler = require('./middlewares/crawler')
-const urlsHandle = require('./middlewares/urlsHandle')
-const beforeStart = require('./middlewares/beforeStart')
-const beforeEnd = require('./middlewares/beforeEnd')
-const NotHandle = require('./middlewares/Stage/NotHandle')
-const HasCreated = require('./middlewares/Stage/HasCreated')
-const ReadyRequest = require('./middlewares/Stage/ReadyRequest')
-const HasGotten = require('./middlewares/Stage/HasGotten')
-const Memory = require('./middlewares/Stage/Memory')
 
 // 全局变量
 global.crawler = {
   html: '', // html文本
-  notHandle: new NotHandle(),
-  hasCreated: new HasCreated(),
-  readyRequest: new ReadyRequest(),
-  hasGotten: new HasGotten(),
-  memory: new Memory(),
+  init: null,
+  pending: null,
+  success: null,
+  memory: null,
   interval: 0,
   len: 0,
   limit: 0,
   urls: new Map(),
+  domainBlackList: [],
   hashMap: {},
   dirPath: '',  // 要存放的目录
   initialRootDirPath: '', // 资源原始根目录
   initialHtmlDirPath: '' // html原始目录
 }
+
+const beforeStart = require('./middlewares/beforeStart')
+const beforeEnd = require('./middlewares/beforeEnd')
+const Init = require('./middlewares/Stage/Init')
+const Pending = require('./middlewares/Stage/Pending')
+const Success = require('./middlewares/Stage/Success')
+const Memory = require('./middlewares/Stage/Memory')
 
 /**
  * 创建服务器
@@ -60,6 +63,10 @@ function createServer (
 
   global.crawler = {
     ...global.crawler,
+    init: new Init(),
+    pending: new Pending(),
+    success: new Success(),
+    memory: new Memory(),
     dirPath,
     initialRootDirPath: urlObj.protocol + '//' + urlObj.hostname,
     initialHtmlDirPath: urlObj.href.replace('/index.html', ''),
@@ -72,7 +79,7 @@ function createServer (
   const app = new Koa()
 
   // 服务启动时处理
-  beforeStart()
+  // beforeStart()
 
   // body解析
   app.use(

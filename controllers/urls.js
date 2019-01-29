@@ -1,14 +1,7 @@
-const fs = require('fs')
-const path = require('path')
-
-const urlsHandle = require('../middlewares/urlsHandle')
-const crawler = require('../middlewares/crawler')
 const {
   len,
-  notHandle,
-  hasCreated,
-  readyRequest,
-  hasGotten,
+  init,
+  pending,
   memory
 } = global.crawler
 
@@ -19,15 +12,13 @@ module.exports = (ctx) => {
 
   // 更新处理
   memory.receive(data)
-  memory.send(notHandle)
+  memory.send(init)
 
   // 请求缓冲处理
-  notHandle.send(readyRequest, len)
+  init.send(pending, len)
 
   // 请求缓冲区空闲, 入栈needRequestArr
-  
   // 请求完成, 入栈hasGottenStack
-
   // 创建完成, 入栈hasCreatedStack
 
   ctx.body = JSON.stringify({

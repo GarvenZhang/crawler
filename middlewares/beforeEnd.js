@@ -4,7 +4,7 @@ const htmlHandle = require('./htmlHandle')
 
 module.exports = () => {
   const {
-    dirPath, html, urls, hashMap
+    dirPath, html, hashMap
   } = global.crawler
 
   // html路径处理
@@ -13,5 +13,5 @@ module.exports = () => {
   // 写入
   fs.createWriteStream(path.resolve(dirPath, './index.html')).write(html)
   fs.createWriteStream(path.resolve(dirPath, './directoryHash.json')).write(JSON.stringify(hashMap))
-  fs.createWriteStream(path.resolve(dirPath, './urls.json')).write(JSON.stringify(real))
+  fs.createWriteStream(path.resolve(dirPath, './urls.json')).write(JSON.stringify({data: []}))
 }

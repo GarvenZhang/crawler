@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const url = require('url')
 
-const {gets, handleData, canAccess} = require('../lib/utils')
+const {httpsHandle, canAccess} = require('../lib/utils')
 
 module.exports = () => {
   const {
@@ -18,7 +18,7 @@ module.exports = () => {
       hashMap: JSON.parse(fs.readFileSync(path.resolve(dirPath, './directoryHash.json')))
     }
   } else {
-    gets(url.resolve(initialHtmlDirPath, './index.html'))
+    httpsHandle(url.resolve(initialHtmlDirPath, './index.html'))
     .then(params => {
       const {
         res
