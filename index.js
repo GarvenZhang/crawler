@@ -4,11 +4,14 @@ const path = require('path')
 // 只考虑https情况
 
 init({
-  dirPath: path.resolve('../../h5_games/000/801/004'),
+  dirPath: path.resolve('../../h5_games/000/804/005'),
   target: 'https://www.yiv.com/games/Ultimate-Boxing/index.html',
   domainBlackList: [
     'google',
     'facebook',
-    '127.0.0.1'
+    '127.0.0.1',
+    'pro.ip-api.com',
+    'pubads.g.doubleclick.net',
+    'www.gstatic.com'
   ]
 })

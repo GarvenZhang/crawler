@@ -1,4 +1,4 @@
-import Stage from '.'
+const Stage = require('./index')
 
 class Memory extends Stage {
   constructor () {
@@ -22,6 +22,7 @@ class Memory extends Stage {
       ) {
         return
       }
+
       // 已存在的拦截
       if (this.data.includes(item)) {
         return

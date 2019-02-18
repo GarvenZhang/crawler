@@ -7,7 +7,7 @@ class Init extends Stage {
 
   send (target) {
     // 先判断是否有空闲缓冲区
-    const freeLen = target.getFreeLen()
+    const freeLen = target.freeLen
     if (freeLen === 0) {
       return
     }

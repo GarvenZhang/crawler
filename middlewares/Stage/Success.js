@@ -19,9 +19,7 @@ class Success extends Stage {
     const total = Stage.getTotal(init, pending, success)
 
     bar.interrupt(`< 未处理: ${init.size}, 排队中: ${pending.size}, 已处理: ${success.size} |【${this.size}/${total}】| 资源创建成功: ${filePath}\n`)
-    if (pending.size === 1) {
-      console.log(pending.data)
-    }
+
     // tips
     if (this.size === total) {
       bar.interrupt(`~~全部资源处理完毕~~`)

@@ -6,6 +6,9 @@ const {
   httpsHandle,
   mkdir
 } = require('../../lib/utils')
+const {
+  sleep
+} = require('../../lib/sleep')
 // 引用类型与基本类型定义的位置
 const {
   hashMap
@@ -37,7 +40,7 @@ class Pending extends Stage {
     super()
   }
 
-  getFreeLen () {
+  get freeLen () {
     const freeLen = 10 - this.size
     if (freeLen > 5) {
       return freeLen
@@ -58,7 +61,7 @@ class Pending extends Stage {
   }
 
   get (from) {
-    const freeLen = this.getFreeLen()
+    const freeLen = this.freeLen
     if (freeLen === 0) {
       return false
     }
@@ -126,16 +129,9 @@ class Pending extends Stage {
     }
     // 必须要控制请求间隔时间, 因为对方服务器肯定会有限制的, 如50ms内处理一共能处理多少个, 超过则拦截。
     // 每个服务器有个连接池, 因为每个连接就是一个新的线程或者进程, 因此连接池的最大数量是由内存决定的, 必须要限定最大数量, 以空出足够的内存给其它进程用
-    const sleep = () => {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          resolve()
-        }, 2E2)
-      })
-    }
 
     for (const item of newData) {
-      await sleep()
+      await sleep(2E2)
       handle(item)
     }
   }
