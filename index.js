@@ -5,7 +5,7 @@ const path = require('path')
 
 init({
   dirPath: path.resolve('../../h5_games/000/804/005'),
-  target: 'https://www.yiv.com/games/Ultimate-Boxing/index.html',
+  target: 'https://www.yiv.com/games/Happy-Glass/index.html',
   domainBlackList: [
     'google',
     'facebook',
